@@ -79,11 +79,14 @@ A call counts as bounded when the chain includes `.limit()`, `.range()`, `.singl
 
 Note that `.order()` alone does **not** bound a query. Ordering changes which 1,000 rows you get, not how many.
 
+A `.select()` after `.insert()`, `.update()`, `.upsert()` or `.delete()` is not reported. It asks for the written rows back (`RETURNING`), and PostgREST has not applied `max-rows` to those since v10. Adding `.limit()` there would be wrong: on an update or delete it limits how many rows the write touches.
+
 ```js
 // options
 "rowcap/no-unbounded-select": ["error", {
   boundMethods: ["limit", "range", "single", "maybeSingle", "csv", "explain"],
-  fromMethods: ["from", "rpc"]
+  fromMethods: ["from", "rpc"],
+  writeMethods: ["insert", "update", "upsert", "delete"]
 }]
 ```
 

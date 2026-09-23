@@ -18,6 +18,11 @@ ruleTester.run("no-unbounded-select", noUnboundedSelect, {
     "supabase.from('tasks').select('*').maybeSingle()",
     "supabase.from('tasks').select('*', { count: 'exact', head: true })",
     "await supabase.from('tasks').select('id').order('id').range(0, 99)",
+    // select() after a write returns the written rows, which max-rows does not cap
+    "supabase.from('tasks').insert(rows).select()",
+    "supabase.from('tasks').update({ done: true }).eq('org_id', org).select('id')",
+    "supabase.from('tasks').upsert(rows).select('id')",
+    "supabase.from('tasks').delete().eq('org_id', org).select('id')",
     // not a PostgREST chain
     "d3.select('body')",
     "knex('tasks').select('*')",
@@ -37,6 +42,16 @@ ruleTester.run("no-unbounded-select", noUnboundedSelect, {
     },
     {
       code: "supabase.from('tasks').select('*', { count: 'exact' })",
+      errors: [{ messageId: "unbounded" }],
+    },
+    {
+      // a write method name after select() does not exempt a read
+      code: "supabase.from('tasks').select('*').eq('status', 'delete')",
+      errors: [{ messageId: "unbounded" }],
+    },
+    {
+      code: "supabase.from('tasks').update({ done: true }).select('id')",
+      options: [{ writeMethods: [] }],
       errors: [{ messageId: "unbounded" }],
     },
   ],
