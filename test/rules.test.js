@@ -18,7 +18,6 @@ ruleTester.run("no-unbounded-select", noUnboundedSelect, {
     "supabase.from('tasks').select('*').maybeSingle()",
     "supabase.from('tasks').select('*', { count: 'exact', head: true })",
     "await supabase.from('tasks').select('id').order('id').range(0, 99)",
-    // select() after a write returns the written rows, which max-rows does not cap
     "supabase.from('tasks').insert(rows).select()",
     "supabase.from('tasks').update({ done: true }).eq('org_id', org).select('id')",
     "supabase.from('tasks').upsert(rows).select('id')",
@@ -45,7 +44,6 @@ ruleTester.run("no-unbounded-select", noUnboundedSelect, {
       errors: [{ messageId: "unbounded" }],
     },
     {
-      // a write method name after select() does not exempt a read
       code: "supabase.from('tasks').select('*').eq('status', 'delete')",
       errors: [{ messageId: "unbounded" }],
     },
